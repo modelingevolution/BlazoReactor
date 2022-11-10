@@ -7,5 +7,6 @@
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.7" />
+        <PackageReference Include="Plumberd" Version="1.2.34.184" />
     </ItemGroup>
 </Project>
