@@ -2,7 +2,7 @@
 
 namespace BlazoReactor.EventAggregator
 {
-	public static class AsyncHelpers
+    public static class AsyncHelpers
     {
         /// <summary>
         /// Return typed Task and the specified value.
@@ -33,11 +33,14 @@ namespace BlazoReactor.EventAggregator
         /// <param name="body">Body.</param>
         /// <param name="ct">CancellationToken?, null if not used.</param>
         /// <typeparam name="T">The 1st type parameter.</typeparam>
-        public static Task ForEachAsync<T>(this IEnumerable<T> source, int dop, Func<T, Task> body, CancellationToken ct = default(CancellationToken))
+        public static Task ForEachAsync<T>(this IEnumerable<T> source, int dop, Func<T, Task> body,
+                                           CancellationToken ct = default(CancellationToken))
         {
             return Task.WhenAll(
-                Partitioner.Create(source).GetPartitions(dop).Select(partition => {
-                    return Task.Factory.StartNew(async () => {
+                Partitioner.Create(source).GetPartitions(dop).Select(partition =>
+                {
+                    return Task.Factory.StartNew(async () =>
+                    {
                         using (partition)
                         {
                             while (partition.MoveNext())

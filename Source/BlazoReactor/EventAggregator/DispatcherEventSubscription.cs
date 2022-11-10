@@ -7,7 +7,7 @@
     /// <typeparam name="TPayload">The type to use for the generic <see cref="System.Action{TPayload}"/> and <see cref="Predicate{TPayload}"/> types.</typeparam>
     public class DispatcherEventSubscription<TPayload> : EventSubscription<TPayload>
     {
-        private readonly SynchronizationContext syncContext;
+        private readonly SynchronizationContext _syncContext;
 
         ///<summary>
         /// Creates a new instance of <see cref="BackgroundEventSubscription{TPayload}"/>.
@@ -18,10 +18,11 @@
         ///<exception cref="ArgumentNullException">When <paramref name="actionReference"/> or <see paramref="filterReference"/> are <see langword="null" />.</exception>
         ///<exception cref="ArgumentException">When the target of <paramref name="actionReference"/> is not of type <see cref="System.Action{TPayload}"/>,
         ///or the target of <paramref name="filterReference"/> is not of type <see cref="Predicate{TPayload}"/>.</exception>
-        public DispatcherEventSubscription(IDelegateReference actionReference, IDelegateReference filterReference, SynchronizationContext context)
+        public DispatcherEventSubscription(IDelegateReference actionReference, IDelegateReference filterReference,
+                                           SynchronizationContext context)
             : base(actionReference, filterReference)
         {
-            syncContext = context;
+            _syncContext = context;
         }
 
         /// <summary>
@@ -31,16 +32,17 @@
         /// <param name="argument">The payload to pass <paramref name="action"/> while invoking it.</param>
         public override void InvokeAction(Action<TPayload> action, TPayload argument)
         {
-            syncContext.Post((o) => action((TPayload)o), argument);
+            _syncContext.Post(obj => action((TPayload)obj), argument);
         }
     }
+
     ///<summary>
     /// Extends <see cref="EventSubscription"/> to invoke the <see cref="Action"/> delegate
     /// in a specific <see cref="SynchronizationContext"/>.
     ///</summary>
     public class DispatcherEventSubscription : EventSubscription
     {
-        private readonly SynchronizationContext syncContext;
+        private readonly SynchronizationContext _syncContext;
 
         ///<summary>
         /// Creates a new instance of <see cref="BackgroundEventSubscription"/>.
@@ -52,7 +54,7 @@
         public DispatcherEventSubscription(IDelegateReference actionReference, SynchronizationContext context)
             : base(actionReference)
         {
-            syncContext = context;
+            _syncContext = context;
         }
 
         /// <summary>
@@ -61,7 +63,7 @@
         /// <param name="action">The action to execute.</param>
         public override void InvokeAction(Action action)
         {
-            syncContext.Post((o) => action(), null);
+            _syncContext.Post(_ => action(), null);
         }
     }
 }

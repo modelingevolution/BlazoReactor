@@ -30,6 +30,7 @@
             Task.Run(() => action(argument));
         }
     }
+
     /// <summary>
     /// Extends <see cref="EventSubscription"/> to invoke the <see cref="Action"/> delegate in a background thread.
     /// </summary>

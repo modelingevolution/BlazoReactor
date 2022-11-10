@@ -8,7 +8,7 @@ namespace BlazoReactor.EventAggregator
     /// internally by the Prism Library.
     /// </summary>
     public class DelegateReference<TDelegate> : IDelegateReference<TDelegate>
-    where TDelegate:Delegate
+        where TDelegate : Delegate
     {
         private readonly TDelegate _delegate;
         private readonly WeakReference _weakReference;
@@ -24,7 +24,7 @@ namespace BlazoReactor.EventAggregator
         public DelegateReference(TDelegate @delegate, bool keepReferenceAlive)
         {
             if (@delegate == null)
-                throw new ArgumentNullException("delegate");
+                throw new ArgumentNullException(nameof(@delegate));
 
             if (keepReferenceAlive)
             {
@@ -69,10 +69,12 @@ namespace BlazoReactor.EventAggregator
             {
                 return _delegate == @delegate;
             }
+
             if (@delegate == null)
             {
                 return !_method.IsStatic && !_weakReference.IsAlive;
             }
+
             return _weakReference.Target == @delegate.Target && Equals(_method, @delegate.GetMethodInfo());
         }
 
@@ -82,11 +84,13 @@ namespace BlazoReactor.EventAggregator
             {
                 return (TDelegate)_method.CreateDelegate(_delegateType, null);
             }
+
             object target = _weakReference.Target;
             if (target != null)
             {
                 return (TDelegate)_method.CreateDelegate(_delegateType, target);
             }
+
             return null;
         }
     }
@@ -157,10 +161,12 @@ namespace BlazoReactor.EventAggregator
             {
                 return _delegate == @delegate;
             }
+
             if (@delegate == null)
             {
                 return !_method.IsStatic && !_weakReference.IsAlive;
             }
+
             return _weakReference.Target == @delegate.Target && Equals(_method, @delegate.GetMethodInfo());
         }
 
@@ -170,11 +176,13 @@ namespace BlazoReactor.EventAggregator
             {
                 return _method.CreateDelegate(_delegateType, null);
             }
+
             object target = _weakReference.Target;
             if (target != null)
             {
                 return _method.CreateDelegate(_delegateType, target);
             }
+
             return null;
         }
     }
