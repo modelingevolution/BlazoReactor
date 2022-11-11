@@ -1,5 +1,6 @@
 ﻿namespace BlazoReactor.EventAggregator;
 
+/// <summary>
 /// Represents a reference to a <see cref="Delegate"/>.
 /// </summary>
 public interface IDelegateReference
@@ -8,8 +9,10 @@ public interface IDelegateReference
     /// Gets the referenced <see cref="Delegate" /> object.
     /// </summary>
     /// <value>A <see cref="Delegate"/> instance if the target is valid; otherwise <see langword="null"/>.</value>
-    Delegate Target { get; }
+    Delegate? Target { get; }
 }
+
+/// <summary>
 /// Represents a reference to a <see cref="Delegate"/>.
 /// </summary>
 public interface IDelegateReference<TDelegate> where TDelegate : Delegate
@@ -18,5 +21,5 @@ public interface IDelegateReference<TDelegate> where TDelegate : Delegate
     /// Gets the referenced <see cref="Delegate" /> object.
     /// </summary>
     /// <value>A <see cref="Delegate"/> instance if the target is valid; otherwise <see langword="null"/>.</value>
-    TDelegate Target { get; }
+    TDelegate? Target { get; }
 }

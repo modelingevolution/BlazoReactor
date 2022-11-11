@@ -24,15 +24,15 @@ internal class AsyncEventSubscription : IEventSubscription
     /// Gets the target <see cref="System.Threading.Tasks"/> that is referenced by the <see cref="IDelegateReference"/>.
     /// </summary>
     /// <value>An <see cref="System.Action"/> or <see langword="null" /> if the referenced target is not alive.</value>
-    public Func<Task> Action => (Func<Task>)_actionReference.Target;
+    public Func<Task>? Action => (Func<Task>?)_actionReference.Target;
 
-    public Delegate Delegate => _actionReference.Target;
+    public Delegate? Delegate => _actionReference.Target;
 
     /// <summary>
     /// Gets or sets a <see cref="SubscriptionToken"/> that identifies this <see cref="IEventSubscription"/>.
     /// </summary>
     /// <value>A token that identifies this <see cref="IEventSubscription"/>.</value>
-    public SubscriptionToken SubscriptionToken { get; set; }
+    public SubscriptionToken? SubscriptionToken { get; set; }
 
     /// <summary>
     /// Gets the execution strategy to publish this event.
@@ -41,18 +41,18 @@ internal class AsyncEventSubscription : IEventSubscription
     /// <remarks>
     /// If <see cref="Action"/>is no longer valid because it was
     /// garbage collected, this method will return <see langword="null" />.
-    /// Otherwise it will return a delegate that evaluates the <see cref="Filter"/> and if it
+    /// Otherwise it will return a delegate that evaluates the Filter and if it
     /// returns <see langword="true" /> will then call <see cref="InvokeAction"/>. The returned
     /// delegate holds a hard reference to the <see cref="Action"/> target
     /// <see cref="Delegate">delegates</see>. As long as the returned delegate is not garbage collected,
     /// the <see cref="Action"/> references delegates won't get collected either.
     /// </remarks>
-    public virtual Func<object[], Task> GetExecutionStrategy()
+    public virtual Func<object[], Task>? GetExecutionStrategy()
     {
-        Func<Task> action = this.Action;
+        Func<Task>? action = Action;
         if (action != null)
         {
-            return (arg) => { return InvokeAction(action); };
+            return _ => InvokeAction(action);
         }
 
         return null;
@@ -99,7 +99,7 @@ internal class AsyncDispatcherEventSubscription : AsyncEventSubscription
     {
         var tcs = new TaskCompletionSource<bool>();
 
-        async void SendOrPostCallback(object o)
+        async void SendOrPostCallback(object? o)
         {
             await action();
             tcs.SetResult(true);
@@ -135,7 +135,7 @@ internal class AsyncEventSubscription<TPayload> : IEventSubscription
             throw new ArgumentNullException(nameof(actionReference));
         }
 
-        if (!(actionReference.Target is Func<TPayload, Task>))
+        if (actionReference.Target is not Func<TPayload, Task>)
         {
             throw new ArgumentException("Invalid target delegate.");
         }
@@ -145,7 +145,7 @@ internal class AsyncEventSubscription<TPayload> : IEventSubscription
             throw new ArgumentNullException(nameof(filterReference));
         }
 
-        if (!(filterReference.Target is Predicate<TPayload>))
+        if (filterReference.Target is not Predicate<TPayload>)
         {
             throw new ArgumentException("Invalid target delegate.");
         }
@@ -158,28 +158,25 @@ internal class AsyncEventSubscription<TPayload> : IEventSubscription
     /// Gets the target <see cref="System.Action{T}"/> that is referenced by the <see cref="IDelegateReference"/>.
     /// </summary>
     /// <value>An <see cref="System.Action{T}"/> or <see langword="null" /> if the referenced target is not alive.</value>
-    public Func<TPayload, Task> Action
-    {
-        get { return (Func<TPayload, Task>)_actionReference.Target; }
-    }
+    public Func<TPayload?, Task>? Action => (Func<TPayload?, Task>?)_actionReference.Target;
 
     /// <summary>
     /// Gets the delegate of the action.
     /// </summary>
     /// <value>The delegate.</value>
-    public Delegate Delegate => _actionReference.Target;
+    public Delegate? Delegate => _actionReference.Target;
 
     /// <summary>
     /// Gets the target <see cref="Predicate{T}"/> that is referenced by the <see cref="IDelegateReference"/>.
     /// </summary>
     /// <value>An <see cref="Predicate{T}"/> or <see langword="null" /> if the referenced target is not alive.</value>
-    public Predicate<TPayload> Filter => (Predicate<TPayload>)_filterReference.Target;
+    public Predicate<TPayload?>? Filter => (Predicate<TPayload?>?)_filterReference.Target;
 
     /// <summary>
     /// Gets or sets a <see cref="SubscriptionToken"/> that identifies this <see cref="IEventSubscription"/>.
     /// </summary>
     /// <value>A token that identifies this <see cref="IEventSubscription"/>.</value>
-    public SubscriptionToken SubscriptionToken { get; set; }
+    public SubscriptionToken? SubscriptionToken { get; set; }
 
     /// <summary>
     /// Gets the execution strategy to publish this event.
@@ -194,18 +191,18 @@ internal class AsyncEventSubscription<TPayload> : IEventSubscription
     /// <see cref="Delegate">delegates</see>. As long as the returned delegate is not garbage collected,
     /// the <see cref="Action"/> and <see cref="Filter"/> references delegates won't get collected either.
     /// </remarks>
-    public virtual Func<object[], Task> GetExecutionStrategy()
+    public virtual Func<object?[]?, Task>? GetExecutionStrategy()
     {
-        Func<TPayload, Task> action = this.Action;
-        Predicate<TPayload> filter = this.Filter;
+        Func<TPayload?, Task>? action = Action;
+        Predicate<TPayload?>? filter = Filter;
         if (action != null && filter != null)
         {
             return arguments =>
             {
-                TPayload argument = default(TPayload);
-                if (arguments != null && arguments.Length > 0 && arguments[0] != null)
+                TPayload? argument = default(TPayload);
+                if (arguments is { Length: > 0 } && arguments[0] != null)
                 {
-                    argument = (TPayload)arguments[0];
+                    argument = (TPayload?)arguments[0];
                 }
 
                 if (filter(argument))
@@ -226,7 +223,7 @@ internal class AsyncEventSubscription<TPayload> : IEventSubscription
     /// <param name="action">The action to execute.</param>
     /// <param name="argument">The payload to pass <paramref name="action"/> while invoking it.</param>
     /// <exception cref="ArgumentNullException">An <see cref="ArgumentNullException"/> is thrown if <paramref name="action"/> is null.</exception>
-    public virtual Task InvokeAction(Func<TPayload, Task> action, TPayload argument)
+    public virtual Task InvokeAction(Func<TPayload?, Task> action, TPayload? argument)
     {
         if (action == null)
         {

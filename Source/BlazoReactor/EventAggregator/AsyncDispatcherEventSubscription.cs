@@ -24,7 +24,7 @@ internal class AsyncBackgroundEventSubscription<TPayload> : AsyncEventSubscripti
     /// </summary>
     /// <param name="action">The action to execute.</param>
     /// <param name="argument">The arguments for the action to execute.</param>
-    public override Task InvokeAction(Func<TPayload, Task> action, TPayload argument)
+    public override Task InvokeAction(Func<TPayload?, Task> action, TPayload? argument)
     {
         return Task.Run(() => action(argument));
     }
@@ -60,13 +60,13 @@ internal class AsyncDispatcherEventSubscription<TPayload> : AsyncEventSubscripti
     /// </summary>
     /// <param name="action">The action to execute.</param>
     /// <param name="argument">The payload to pass <paramref name="action"/> while invoking it.</param>
-    public override Task InvokeAction(Func<TPayload, Task> action, TPayload argument)
+    public override Task InvokeAction(Func<TPayload?, Task> action, TPayload? argument)
     {
         var tcs = new TaskCompletionSource<bool>();
 
-        async void SendOrPostCallback(object o)
+        async void SendOrPostCallback(object? o)
         {
-            await action((TPayload)o);
+            await action((TPayload?)o);
             tcs.SetResult(true);
         }
 

@@ -10,10 +10,10 @@ namespace BlazoReactor.EventAggregator;
 public class DelegateReference<TDelegate> : IDelegateReference<TDelegate>
     where TDelegate : Delegate
 {
-    private readonly TDelegate _delegate;
-    private readonly WeakReference _weakReference;
-    private readonly MethodInfo _method;
-    private readonly Type _delegateType;
+    private readonly TDelegate? _delegate;
+    private readonly WeakReference? _weakReference;
+    private readonly MethodInfo? _method;
+    private readonly Type? _delegateType;
 
     /// <summary>
     /// Initializes a new instance of <see cref="DelegateReference"/>.
@@ -42,18 +42,7 @@ public class DelegateReference<TDelegate> : IDelegateReference<TDelegate>
     /// Gets the <see cref="Delegate" /> (the target) referenced by the current <see cref="DelegateReference"/> object.
     /// </summary>
     /// <value><see langword="null"/> if the object referenced by the current <see cref="DelegateReference"/> object has been garbage collected; otherwise, a reference to the <see cref="Delegate"/> referenced by the current <see cref="DelegateReference"/> object.</value>
-    public TDelegate Target
-    {
-        get
-        {
-            if (_delegate != null)
-            {
-                return _delegate;
-            }
-
-            return TryGetDelegate();
-        }
-    }
+    public TDelegate? Target => _delegate ?? TryGetDelegate();
 
     /// <summary>
     /// Checks if the <see cref="Delegate" /> (the target) referenced by the current <see cref="DelegateReference"/> object are equal to another <see cref="Delegate" />.
@@ -61,7 +50,7 @@ public class DelegateReference<TDelegate> : IDelegateReference<TDelegate>
     /// </summary>
     /// <param name="delegate">The other delegate to compare with.</param>
     /// <returns>True if the target referenced by the current object are equal to <paramref name="delegate"/>.</returns>
-    public bool TargetEquals(TDelegate @delegate)
+    public bool TargetEquals(TDelegate? @delegate)
     {
         if (_delegate != null)
         {
@@ -70,26 +59,38 @@ public class DelegateReference<TDelegate> : IDelegateReference<TDelegate>
 
         if (@delegate == null)
         {
-            return !_method.IsStatic && !_weakReference.IsAlive;
+            return _method is { IsStatic: false } && _weakReference is { IsAlive: false };
         }
 
-        return _weakReference.Target == @delegate.Target && Equals(_method, @delegate.GetMethodInfo());
+        return _weakReference?.Target == @delegate.Target && Equals(_method, @delegate.GetMethodInfo());
     }
 
-    private TDelegate TryGetDelegate()
+    private TDelegate? TryGetDelegate()
     {
-        if (_method.IsStatic)
+        if (_method?.IsStatic ?? false)
         {
+            if (_delegateType is null)
+            {
+                return null;
+            }
+            
             return (TDelegate)_method.CreateDelegate(_delegateType, null);
         }
 
-        object target = _weakReference.Target;
-        if (target != null)
-        {
-            return (TDelegate)_method.CreateDelegate(_delegateType, target);
-        }
+        object? target = _weakReference?.Target;
 
-        return null;
+        if (target == null)
+        {
+            return null;
+        }
+        
+        if (_delegateType is null)
+        {
+            return null;
+        }
+            
+        return (TDelegate?)_method?.CreateDelegate(_delegateType, target);
+
     }
 }
 
@@ -100,10 +101,10 @@ public class DelegateReference<TDelegate> : IDelegateReference<TDelegate>
 /// </summary>
 public class DelegateReference : IDelegateReference
 {
-    private readonly Delegate _delegate;
-    private readonly WeakReference _weakReference;
-    private readonly MethodInfo _method;
-    private readonly Type _delegateType;
+    private readonly Delegate? _delegate;
+    private readonly WeakReference? _weakReference;
+    private readonly MethodInfo? _method;
+    private readonly Type? _delegateType;
 
     /// <summary>
     /// Initializes a new instance of <see cref="DelegateReference"/>.
@@ -114,7 +115,7 @@ public class DelegateReference : IDelegateReference
     public DelegateReference(Delegate @delegate, bool keepReferenceAlive)
     {
         if (@delegate == null)
-            throw new ArgumentNullException("delegate");
+            throw new ArgumentNullException(nameof(@delegate));
 
         if (keepReferenceAlive)
         {
@@ -132,18 +133,7 @@ public class DelegateReference : IDelegateReference
     /// Gets the <see cref="Delegate" /> (the target) referenced by the current <see cref="DelegateReference"/> object.
     /// </summary>
     /// <value><see langword="null"/> if the object referenced by the current <see cref="DelegateReference"/> object has been garbage collected; otherwise, a reference to the <see cref="Delegate"/> referenced by the current <see cref="DelegateReference"/> object.</value>
-    public Delegate Target
-    {
-        get
-        {
-            if (_delegate != null)
-            {
-                return _delegate;
-            }
-
-            return TryGetDelegate();
-        }
-    }
+    public Delegate? Target => _delegate ?? TryGetDelegate();
 
     /// <summary>
     /// Checks if the <see cref="Delegate" /> (the target) referenced by the current <see cref="DelegateReference"/> object are equal to another <see cref="Delegate" />.
@@ -151,7 +141,7 @@ public class DelegateReference : IDelegateReference
     /// </summary>
     /// <param name="delegate">The other delegate to compare with.</param>
     /// <returns>True if the target referenced by the current object are equal to <paramref name="delegate"/>.</returns>
-    public bool TargetEquals(Delegate @delegate)
+    public bool TargetEquals(Delegate? @delegate)
     {
         if (_delegate != null)
         {
@@ -160,23 +150,24 @@ public class DelegateReference : IDelegateReference
 
         if (@delegate == null)
         {
-            return !_method.IsStatic && !_weakReference.IsAlive;
+            return _method is { IsStatic: false } && _weakReference is { IsAlive: false };
         }
 
-        return _weakReference.Target == @delegate.Target && Equals(_method, @delegate.GetMethodInfo());
+        return _weakReference?.Target == @delegate.Target && Equals(_method, @delegate.GetMethodInfo());
     }
 
-    private Delegate TryGetDelegate()
+    private Delegate? TryGetDelegate()
     {
-        if (_method.IsStatic)
+        if (_method?.IsStatic ?? false)
         {
-            return _method.CreateDelegate(_delegateType, null);
+            return _delegateType is null ? null : _method.CreateDelegate(_delegateType, null);
         }
 
-        object target = _weakReference.Target;
+        object? target = _weakReference?.Target;
+        
         if (target != null)
         {
-            return _method.CreateDelegate(_delegateType, target);
+            return _delegateType is null ? null : _method?.CreateDelegate(_delegateType, target);
         }
 
         return null;

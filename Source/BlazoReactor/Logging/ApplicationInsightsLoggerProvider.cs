@@ -5,7 +5,7 @@ namespace BlazoReactor.Logging;
 public class ApplicationInsightsLoggerProvider : ILoggerProvider
 {
     private readonly IApplicationInsights _appInsights;
-    private ILogger _logger;
+    private ILogger? _logger;
     private bool _disposed = false;
 
     public ApplicationInsightsLoggerProvider(IApplicationInsights appInsights)
@@ -20,15 +20,17 @@ public class ApplicationInsightsLoggerProvider : ILoggerProvider
 
     protected virtual void Dispose(bool disposing)
     {
-        if (!_disposed)
+        if (_disposed)
         {
-            if (disposing)
-            {
-                _logger = null;
-            }
-
-            _disposed = true;
+            return;
         }
+        
+        if (disposing)
+        {
+            _logger = null;
+        }
+
+        _disposed = true;
     }
 
     public void Dispose()

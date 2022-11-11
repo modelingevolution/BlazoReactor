@@ -6,54 +6,18 @@
 public abstract class EventBase
 {
     private readonly List<IEventSubscription> _subscriptions = new List<IEventSubscription>();
-    internal Action<object> OnChannelEvent;
+    internal Action<object>? OnChannelEvent;
+
     /// <summary>
     /// Allows the SynchronizationContext to be set by the EventAggregator for UI Thread Dispatching
     /// </summary>
-    public SynchronizationContext SynchronizationContext { get; set; }
+    public SynchronizationContext? SynchronizationContext { get; set; }
 
     /// <summary>
     /// Gets the list of current subscriptions.
     /// </summary>
     /// <value>The current subscribers.</value>
     protected ICollection<IEventSubscription> Subscriptions => _subscriptions;
-
-    /// <summary>
-    /// Adds the specified <see cref="IEventSubscription"/> to the subscribers' collection.
-    /// </summary>
-    /// <param name="eventSubscription">The subscriber.</param>
-    /// <returns>The <see cref="SubscriptionToken"/> that uniquely identifies every subscriber.</returns>
-    /// <remarks>
-    /// Adds the subscription to the internal list and assigns it a new <see cref="SubscriptionToken"/>.
-    /// </remarks>
-    protected virtual SubscriptionToken InternalSubscribe(IEventSubscription eventSubscription)
-    {
-        if (eventSubscription == null) throw new ArgumentNullException(nameof(eventSubscription));
-
-        eventSubscription.SubscriptionToken = new SubscriptionToken(Unsubscribe);
-
-        lock (Subscriptions)
-        {
-            Subscriptions.Add(eventSubscription);
-        }
-        return eventSubscription.SubscriptionToken;
-    }
-
-    /// <summary>
-    /// Calls all the execution strategies exposed by the list of <see cref="IEventSubscription"/>.
-    /// </summary>
-    /// <param name="arguments">The arguments that will be passed to the listeners.</param>
-    /// <remarks>Before executing the strategies, this class will prune all the subscribers from the
-    /// list that return a <see langword="null" /> <see cref="Action{T}"/> when calling the
-    /// <see cref="IEventSubscription.GetExecutionStrategy"/> method.</remarks>
-    protected async Task InternalPublish(params object[] arguments)
-    {
-        List<Func<object[], Task>> executionStrategies = PruneAndReturnStrategies();
-        foreach (var executionStrategy in executionStrategies)
-        {
-            await executionStrategy(arguments);
-        }
-    }
 
     /// <summary>
     /// Removes the subscriber matching the <see cref="SubscriptionToken"/>.
@@ -63,7 +27,8 @@ public abstract class EventBase
     {
         lock (Subscriptions)
         {
-            IEventSubscription subscription = Subscriptions.FirstOrDefault(evt => evt.SubscriptionToken == token);
+            IEventSubscription? subscription =
+                Subscriptions.FirstOrDefault(evt => evt.SubscriptionToken?.Equals(token) ?? false);
             if (subscription != null)
             {
                 Subscriptions.Remove(subscription);
@@ -80,21 +45,64 @@ public abstract class EventBase
     {
         lock (Subscriptions)
         {
-            IEventSubscription subscription = Subscriptions.FirstOrDefault(evt => evt.SubscriptionToken == token);
+            IEventSubscription? subscription =
+                Subscriptions.FirstOrDefault(evt => evt.SubscriptionToken?.Equals(token) ?? false);
             return subscription != null;
         }
     }
 
-    private List<Func<object[], Task>> PruneAndReturnStrategies()
+    /// <summary>
+    /// Adds the specified <see cref="IEventSubscription"/> to the subscribers' collection.
+    /// </summary>
+    /// <param name="eventSubscription">The subscriber.</param>
+    /// <returns>The <see cref="SubscriptionToken"/> that uniquely identifies every subscriber.</returns>
+    /// <remarks>
+    /// Adds the subscription to the internal list and assigns it a new <see cref="SubscriptionToken"/>.
+    /// </remarks>
+    protected virtual SubscriptionToken? InternalSubscribe(IEventSubscription eventSubscription)
     {
-        List<Func<object[], Task>> returnList = new List<Func<object[], Task>>();
+        if (eventSubscription == null) throw new ArgumentNullException(nameof(eventSubscription));
+
+        eventSubscription.SubscriptionToken = new SubscriptionToken(Unsubscribe);
+
+        lock (Subscriptions)
+        {
+            Subscriptions.Add(eventSubscription);
+        }
+
+        return eventSubscription.SubscriptionToken;
+    }
+
+    /// <summary>
+    /// Calls all the execution strategies exposed by the list of <see cref="IEventSubscription"/>.
+    /// </summary>
+    /// <param name="arguments">The arguments that will be passed to the listeners.</param>
+    /// <remarks>Before executing the strategies, this class will prune all the subscribers from the
+    /// list that return a <see langword="null" /> <see cref="Action{T}"/> when calling the
+    /// <see cref="IEventSubscription.GetExecutionStrategy"/> method.</remarks>
+    protected async Task InternalPublish(params object[] arguments)
+    {
+        List<Func<object[], Task>?> executionStrategies = PruneAndReturnStrategies();
+        foreach (var executionStrategy in executionStrategies)
+        {
+            if (executionStrategy is null)
+            {
+                continue;
+            }
+
+            await executionStrategy(arguments);
+        }
+    }
+
+    private List<Func<object[], Task>?> PruneAndReturnStrategies()
+    {
+        List<Func<object[], Task>?> returnList = new List<Func<object[], Task>?>();
 
         lock (Subscriptions)
         {
             for (var i = Subscriptions.Count - 1; i >= 0; i--)
             {
-                Func<object[], Task> listItem =
-
+                Func<object[], Task>? listItem =
                     _subscriptions[i].GetExecutionStrategy();
 
                 if (listItem == null)

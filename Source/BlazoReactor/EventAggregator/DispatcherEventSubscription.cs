@@ -30,9 +30,9 @@ public class DispatcherEventSubscription<TPayload> : EventSubscription<TPayload>
     /// </summary>
     /// <param name="action">The action to execute.</param>
     /// <param name="argument">The payload to pass <paramref name="action"/> while invoking it.</param>
-    public override void InvokeAction(Action<TPayload> action, TPayload argument)
+    public override void InvokeAction(Action<TPayload?> action, TPayload? argument)
     {
-        _syncContext.Post(obj => action((TPayload)obj), argument);
+        _syncContext.Post(obj => action((TPayload?)obj), argument);
     }
 }
 

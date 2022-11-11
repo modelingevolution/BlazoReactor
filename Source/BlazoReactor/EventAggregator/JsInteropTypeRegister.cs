@@ -9,7 +9,7 @@ public class JsInteropTypeRegister : IJsInteropTypeRegister
         _indexByName = new Dictionary<string, Type>();
         _indexByType = new Dictionary<Type, string>();
     }
-    public void RegisterTypes(IEnumerable<Type> types, Func<Type, string> func = null)
+    public void RegisterTypes(IEnumerable<Type> types, Func<Type, string>? func = null)
     {
         func ??= x => x.Name;
         foreach (var i in types)
@@ -22,11 +22,11 @@ public class JsInteropTypeRegister : IJsInteropTypeRegister
 
     public bool TryGetTypeByName(string name, out Type type)
     {
-        return _indexByName.TryGetValue(name, out type);
+        return _indexByName.TryGetValue(name, out type!);
     }
 
     public bool TryGetNameByType(Type eventType, out string name)
     {
-        return _indexByType.TryGetValue(eventType, out name);
+        return _indexByType.TryGetValue(eventType, out name!);
     }
 }

@@ -13,7 +13,7 @@ public class EventSubscription<TPayload> : IEventSubscription
 {
     private readonly IDelegateReference _actionReference;
     private readonly IDelegateReference _filterReference;
-    public Delegate Delegate => _actionReference.Target;
+    public Delegate? Delegate => _actionReference.Target;
 
     ///<summary>
     /// Creates a new instance of <see cref="EventSubscription{TPayload}"/>.
@@ -27,13 +27,17 @@ public class EventSubscription<TPayload> : IEventSubscription
     {
         if (actionReference == null)
             throw new ArgumentNullException(nameof(actionReference));
-        if (!(actionReference.Target is Action<TPayload>))
-            throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, typeof(Action<TPayload>).FullName), nameof(actionReference));
+        if (actionReference.Target is not Action<TPayload>)
+            throw new ArgumentException(
+                string.Format(CultureInfo.CurrentCulture, typeof(Action<TPayload>).FullName ?? string.Empty),
+                nameof(actionReference));
 
         if (filterReference == null)
             throw new ArgumentNullException(nameof(filterReference));
-        if (!(filterReference.Target is Predicate<TPayload>))
-            throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, typeof(Predicate<TPayload>).FullName), nameof(filterReference));
+        if (filterReference.Target is not Predicate<TPayload>)
+            throw new ArgumentException(
+                string.Format(CultureInfo.CurrentCulture, typeof(Predicate<TPayload>).FullName ?? string.Empty),
+                nameof(filterReference));
 
         _actionReference = actionReference;
         _filterReference = filterReference;
@@ -43,22 +47,19 @@ public class EventSubscription<TPayload> : IEventSubscription
     /// Gets the target <see cref="System.Action{T}"/> that is referenced by the <see cref="IDelegateReference"/>.
     /// </summary>
     /// <value>An <see cref="System.Action{T}"/> or <see langword="null" /> if the referenced target is not alive.</value>
-    public Action<TPayload> Action
-    {
-        get { return (Action<TPayload>)_actionReference.Target; }
-    }
+    public Action<TPayload?>? Action => (Action<TPayload?>?)_actionReference.Target;
 
     /// <summary>
     /// Gets the target <see cref="Predicate{T}"/> that is referenced by the <see cref="IDelegateReference"/>.
     /// </summary>
     /// <value>An <see cref="Predicate{T}"/> or <see langword="null" /> if the referenced target is not alive.</value>
-    public Predicate<TPayload> Filter => (Predicate<TPayload>)_filterReference.Target;
+    public Predicate<TPayload>? Filter => (Predicate<TPayload>?)_filterReference.Target;
 
     /// <summary>
     /// Gets or sets a <see cref="SubscriptionToken"/> that identifies this <see cref="IEventSubscription"/>.
     /// </summary>
     /// <value>A token that identifies this <see cref="IEventSubscription"/>.</value>
-    public SubscriptionToken SubscriptionToken { get; set; }
+    public SubscriptionToken? SubscriptionToken { get; set; }
 
     /// <summary>
     /// Gets the execution strategy to publish this event.
@@ -73,26 +74,31 @@ public class EventSubscription<TPayload> : IEventSubscription
     /// <see cref="Delegate">delegates</see>. As long as the returned delegate is not garbage collected,
     /// the <see cref="Action"/> and <see cref="Filter"/> references delegates won't get collected either.
     /// </remarks>
-    public virtual Func<object[], Task> GetExecutionStrategy()
+    public virtual Func<object?[]?, Task>? GetExecutionStrategy()
     {
-        Action<TPayload> action = this.Action;
-        Predicate<TPayload> filter = this.Filter;
-        if (action != null && filter != null)
+        Action<TPayload?>? action = Action;
+        Predicate<TPayload>? filter = Filter;
+
+        if (action is null || filter is null)
         {
-            return arguments => {
-                TPayload argument = default(TPayload);
-                if (arguments != null && arguments.Length > 0 && arguments[0] != null)
-                {
-                    argument = (TPayload)arguments[0];
-                }
-                if (filter(argument))
-                {
-                    InvokeAction(action, argument);
-                }
-                return AsyncHelpers.Return();
-            };
+            return null;
         }
-        return null;
+
+        return arguments =>
+        {
+            var argument = default(TPayload);
+            if (arguments is { Length: > 0 } && arguments[0] != null)
+            {
+                argument = (TPayload?)arguments[0];
+            }
+
+            if (argument is not null && filter(argument))
+            {
+                InvokeAction(action, argument);
+            }
+
+            return AsyncHelpers.Return();
+        };
     }
 
     /// <summary>
@@ -101,13 +107,14 @@ public class EventSubscription<TPayload> : IEventSubscription
     /// <param name="action">The action to execute.</param>
     /// <param name="argument">The payload to pass <paramref name="action"/> while invoking it.</param>
     /// <exception cref="ArgumentNullException">An <see cref="ArgumentNullException"/> is thrown if <paramref name="action"/> is null.</exception>
-    public virtual void InvokeAction(Action<TPayload> action, TPayload argument)
+    public virtual void InvokeAction(Action<TPayload?> action, TPayload? argument)
     {
         if (action == null) throw new ArgumentNullException(nameof(action));
 
         action(argument);
     }
 }
+
 /// <summary>
 /// Provides a way to retrieve a <see cref="Delegate"/> to execute an action depending
 /// on the value of a second filter predicate that returns true if the action should execute.
@@ -126,29 +133,27 @@ public class EventSubscription : IEventSubscription
     {
         if (actionReference == null)
             throw new ArgumentNullException(nameof(actionReference));
-        if (!(actionReference.Target is Action))
-            throw new ArgumentException(string.Format(CultureInfo.CurrentCulture,  typeof(Action).FullName), nameof(actionReference));
+        if (actionReference.Target is not System.Action)
+            throw new ArgumentException(
+                string.Format(CultureInfo.CurrentCulture, typeof(Action).FullName ?? string.Empty),
+                nameof(actionReference));
 
         _actionReference = actionReference;
     }
-    public Delegate Delegate
-    {
-        get
-        {
-            return _actionReference.Target;
-        }
-    }
+
+    public Delegate? Delegate => _actionReference.Target;
+
     /// <summary>
     /// Gets the target <see cref="System.Action"/> that is referenced by the <see cref="IDelegateReference"/>.
     /// </summary>
     /// <value>An <see cref="System.Action"/> or <see langword="null" /> if the referenced target is not alive.</value>
-    public Action Action => (Action)_actionReference.Target;
+    public Action? Action => (Action?)_actionReference.Target;
 
     /// <summary>
     /// Gets or sets a <see cref="SubscriptionToken"/> that identifies this <see cref="IEventSubscription"/>.
     /// </summary>
     /// <value>A token that identifies this <see cref="IEventSubscription"/>.</value>
-    public SubscriptionToken SubscriptionToken { get; set; }
+    public SubscriptionToken? SubscriptionToken { get; set; }
 
     /// <summary>
     /// Gets the execution strategy to publish this event.
@@ -163,16 +168,18 @@ public class EventSubscription : IEventSubscription
     /// <see cref="Delegate">delegates</see>. As long as the returned delegate is not garbage collected,
     /// the <see cref="Action"/> references delegates won't get collected either.
     /// </remarks>
-    public virtual Func<object[], Task> GetExecutionStrategy()
+    public virtual Func<object[], Task>? GetExecutionStrategy()
     {
-        Action action = this.Action;
+        Action? action = Action;
         if (action != null)
         {
-            return arguments => {
+            return _ =>
+            {
                 InvokeAction(action);
                 return AsyncHelpers.Return();
             };
         }
+
         return null;
     }
 

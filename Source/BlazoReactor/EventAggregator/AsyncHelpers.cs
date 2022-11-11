@@ -11,7 +11,7 @@ public static class AsyncHelpers
     /// <typeparam name="T">The 1st type parameter.</typeparam>
     public static Task<T> Return<T>(T value)
     {
-        return Task<T>.FromResult(value);
+        return Task.FromResult(value);
     }
 
     /// <summary>
@@ -19,7 +19,7 @@ public static class AsyncHelpers
     /// </summary>
     public static Task Return()
     {
-        return Task<bool>.FromResult(false);
+        return Task.FromResult(false);
     }
 
     /// <summary>
@@ -34,7 +34,7 @@ public static class AsyncHelpers
     /// <param name="ct">CancellationToken?, null if not used.</param>
     /// <typeparam name="T">The 1st type parameter.</typeparam>
     public static Task ForEachAsync<T>(this IEnumerable<T> source, int dop, Func<T, Task> body,
-                                       CancellationToken ct = default(CancellationToken))
+                                       CancellationToken ct = default)
     {
         return Task.WhenAll(
             Partitioner.Create(source).GetPartitions(dop).Select(partition =>

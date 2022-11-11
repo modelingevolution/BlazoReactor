@@ -6,12 +6,12 @@
 /// <typeparam name="TPayload">The type of message that will be passed to the subscribers.</typeparam>
 public class PubSubEvent<TPayload> : EventBase
 {
-    public SubscriptionToken Subscribe(Action<TPayload> action)
+    public SubscriptionToken? Subscribe(Action<TPayload> action)
     {
         return Subscribe(action, ThreadOption.PublisherThread);
     }
 
-    public SubscriptionToken Subscribe(Func<TPayload, Task> action)
+    public SubscriptionToken? Subscribe(Func<TPayload, Task> action)
     {
         return Subscribe(action, ThreadOption.PublisherThread);
     }
@@ -22,18 +22,18 @@ public class PubSubEvent<TPayload> : EventBase
     /// <param name="action">The delegate that gets executed when the event is raised.</param>
     /// <param name="filter">Filter to evaluate if the subscriber should receive the event.</param>
     /// <returns>A <see cref="SubscriptionToken"/> that uniquely identifies the added subscription.</returns>
-    public virtual SubscriptionToken Subscribe(Action<TPayload> action, Predicate<TPayload> filter)
+    public virtual SubscriptionToken? Subscribe(Action<TPayload> action, Predicate<TPayload> filter)
     {
         return Subscribe(action, ThreadOption.PublisherThread, false, filter);
     }
 
-    public virtual SubscriptionToken Subscribe(Action<TPayload> action, ThreadOption options,
-                                               Predicate<TPayload> filter)
+    public virtual SubscriptionToken? Subscribe(Action<TPayload> action, ThreadOption options,
+                                                Predicate<TPayload> filter)
     {
         return Subscribe(action, options, false, filter);
     }
 
-    public SubscriptionToken Subscribe(Func<TPayload, Task> action, ThreadOption threadOption)
+    public SubscriptionToken? Subscribe(Func<TPayload, Task> action, ThreadOption threadOption)
     {
         return Subscribe(action, threadOption, false);
     }
@@ -48,12 +48,12 @@ public class PubSubEvent<TPayload> : EventBase
     /// <remarks>
     /// The PubSubEvent collection is thread-safe.
     /// </remarks>
-    public SubscriptionToken Subscribe(Action<TPayload> action, ThreadOption threadOption)
+    public SubscriptionToken? Subscribe(Action<TPayload> action, ThreadOption threadOption)
     {
         return Subscribe(action, threadOption, false);
     }
 
-    public SubscriptionToken Subscribe(Func<TPayload, Task> action, bool keepSubscriberReferenceAlive)
+    public SubscriptionToken? Subscribe(Func<TPayload, Task> action, bool keepSubscriberReferenceAlive)
     {
         return Subscribe(action, ThreadOption.PublisherThread, keepSubscriberReferenceAlive);
     }
@@ -70,13 +70,13 @@ public class PubSubEvent<TPayload> : EventBase
     /// <para/>
     /// The PubSubEvent collection is thread-safe.
     /// </remarks>
-    public SubscriptionToken Subscribe(Action<TPayload> action, bool keepSubscriberReferenceAlive)
+    public SubscriptionToken? Subscribe(Action<TPayload> action, bool keepSubscriberReferenceAlive)
     {
         return Subscribe(action, ThreadOption.PublisherThread, keepSubscriberReferenceAlive);
     }
 
-    public SubscriptionToken Subscribe(Func<TPayload, Task> action, ThreadOption threadOption,
-                                       bool keepSubscriberReferenceAlive)
+    public SubscriptionToken? Subscribe(Func<TPayload, Task> action, ThreadOption threadOption,
+                                        bool keepSubscriberReferenceAlive)
     {
         return Subscribe(action, threadOption, keepSubscriberReferenceAlive, null);
     }
@@ -94,8 +94,8 @@ public class PubSubEvent<TPayload> : EventBase
     /// <para/>
     /// The PubSubEvent collection is thread-safe.
     /// </remarks>
-    public SubscriptionToken Subscribe(Action<TPayload> action, ThreadOption threadOption,
-                                       bool keepSubscriberReferenceAlive)
+    public SubscriptionToken? Subscribe(Action<TPayload> action, ThreadOption threadOption,
+                                        bool keepSubscriberReferenceAlive)
     {
         return Subscribe(action, threadOption, keepSubscriberReferenceAlive, null);
     }
@@ -114,8 +114,8 @@ public class PubSubEvent<TPayload> : EventBase
     ///
     /// The PubSubEvent collection is thread-safe.
     /// </remarks>
-    public virtual SubscriptionToken Subscribe(Action<TPayload> action, ThreadOption threadOption,
-                                               bool keepSubscriberReferenceAlive, Predicate<TPayload>? filter)
+    public virtual SubscriptionToken? Subscribe(Action<TPayload> action, ThreadOption threadOption,
+                                                bool keepSubscriberReferenceAlive, Predicate<TPayload>? filter)
     {
         IDelegateReference actionReference = new DelegateReference(action, keepSubscriberReferenceAlive);
         IDelegateReference filterReference;
@@ -153,13 +153,13 @@ public class PubSubEvent<TPayload> : EventBase
         return InternalSubscribe(subscription);
     }
 
-    public SubscriptionToken Subscribe(Func<TPayload, Task> action, Predicate<TPayload> filter)
+    public SubscriptionToken? Subscribe(Func<TPayload, Task> action, Predicate<TPayload> filter)
     {
         return Subscribe(action, ThreadOption.PublisherThread, false, filter);
     }
 
-    public virtual SubscriptionToken Subscribe(Func<TPayload, Task> action, ThreadOption threadOption,
-                                               bool keepSubscriberReferenceAlive, Predicate<TPayload>? filter)
+    public virtual SubscriptionToken? Subscribe(Func<TPayload, Task> action, ThreadOption threadOption,
+                                                bool keepSubscriberReferenceAlive, Predicate<TPayload>? filter)
     {
         IDelegateReference actionReference = new DelegateReference(action, keepSubscriberReferenceAlive);
         IDelegateReference filterReference;
@@ -202,6 +202,11 @@ public class PubSubEvent<TPayload> : EventBase
     /// <param name="payload">Message to pass to the subscribers.</param>
     public virtual async Task Publish(TPayload payload)
     {
+        if (payload is null)
+        {
+            return;
+        }
+
         await InternalPublish(payload);
         OnChannelEvent?.Invoke(payload);
     }
@@ -260,12 +265,12 @@ public abstract class PubSubEvent : EventBase
     /// <remarks>
     /// The PubSubEvent collection is thread-safe.
     /// </remarks>
-    public SubscriptionToken Subscribe(Action action)
+    public SubscriptionToken? Subscribe(Action action)
     {
         return Subscribe(action, ThreadOption.PublisherThread);
     }
 
-    public SubscriptionToken Subscribe(Func<Task> action)
+    public SubscriptionToken? Subscribe(Func<Task> action)
     {
         return Subscribe(action, ThreadOption.PublisherThread);
     }
@@ -280,12 +285,12 @@ public abstract class PubSubEvent : EventBase
     /// <remarks>
     /// The PubSubEvent collection is thread-safe.
     /// </remarks>
-    public SubscriptionToken Subscribe(Action action, ThreadOption threadOption)
+    public SubscriptionToken? Subscribe(Action action, ThreadOption threadOption)
     {
         return Subscribe(action, threadOption, false);
     }
 
-    public SubscriptionToken Subscribe(Func<Task> action, ThreadOption threadOption)
+    public SubscriptionToken? Subscribe(Func<Task> action, ThreadOption threadOption)
     {
         return Subscribe(action, threadOption, false);
     }
@@ -302,12 +307,12 @@ public abstract class PubSubEvent : EventBase
     /// <para/>
     /// The PubSubEvent collection is thread-safe.
     /// </remarks>
-    public SubscriptionToken Subscribe(Action action, bool keepSubscriberReferenceAlive)
+    public SubscriptionToken? Subscribe(Action action, bool keepSubscriberReferenceAlive)
     {
         return Subscribe(action, ThreadOption.PublisherThread, keepSubscriberReferenceAlive);
     }
 
-    public SubscriptionToken Subscribe(Func<Task> action, bool keepSubscriberReferenceAlive)
+    public SubscriptionToken? Subscribe(Func<Task> action, bool keepSubscriberReferenceAlive)
     {
         return Subscribe(action, ThreadOption.PublisherThread, keepSubscriberReferenceAlive);
     }
@@ -325,8 +330,8 @@ public abstract class PubSubEvent : EventBase
     /// <para/>
     /// The PubSubEvent collection is thread-safe.
     /// </remarks>
-    public virtual SubscriptionToken Subscribe(Action action, ThreadOption threadOption,
-                                               bool keepSubscriberReferenceAlive)
+    public virtual SubscriptionToken? Subscribe(Action action, ThreadOption threadOption,
+                                                bool keepSubscriberReferenceAlive)
     {
         IDelegateReference actionReference = new DelegateReference(action, keepSubscriberReferenceAlive);
 
@@ -352,8 +357,8 @@ public abstract class PubSubEvent : EventBase
         return InternalSubscribe(subscription);
     }
 
-    public virtual SubscriptionToken Subscribe(Func<Task> action, ThreadOption threadOption,
-                                               bool keepSubscriberReferenceAlive)
+    public virtual SubscriptionToken? Subscribe(Func<Task> action, ThreadOption threadOption,
+                                                bool keepSubscriberReferenceAlive)
     {
         IDelegateReference actionReference = new DelegateReference(action, keepSubscriberReferenceAlive);
 

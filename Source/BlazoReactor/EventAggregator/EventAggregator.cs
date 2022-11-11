@@ -10,68 +10,59 @@ namespace BlazoReactor.EventAggregator;
 /// </summary>
 public class EventAggregator : IEventAggregator
 {
+    static readonly JsonSerializerOptions SerializeOptions = new JsonSerializerOptions
+        { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+    
     private static readonly ILogger Log = LogFactory.GetLogger();
 
     private static readonly JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions
         { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, };
 
-    private readonly IJSRuntime _js;
+    private readonly IJSRuntime? _js;
     private readonly IJsInteropTypeRegister _typeRegister;
 
     private readonly Dictionary<Type, EventBase> _events;
-    private readonly SynchronizationContext _syncContext = SynchronizationContext.Current;
+    private readonly SynchronizationContext? _syncContext = SynchronizationContext.Current;
 
-    private IJSObjectReference _proxy;
-
+    private IJSObjectReference? _proxy;
+    
     public EventAggregator(IJSRuntime js, IJsInteropTypeRegister typeRegister)
     {
         _js = js;
         _typeRegister = typeRegister;
         _events = new Dictionary<Type, EventBase>();
-        if (_js != null) ConnectJs();
+        // TODO: We want to not wait for it?
+        TryConnectJs();
     }
 
     [JSInvokable]
     public void Send(string eventType, string json)
     {
-        Type eType = null;
+        Type? eType = null;
         try
         {
-            if (_typeRegister.TryGetTypeByName(eventType, out eType))
-            {
-                var evt = JsonSerializer.Deserialize(json, eType, JsonSerializerOptions);
-                GetEvent(eType).Publish(evt);
-            }
-            else
+            // TODO: another time is locked but here is not 
+            if (!_typeRegister.TryGetTypeByName(eventType, out eType))
             {
                 Log.LogWarning("Type {Typename} is unregistered and we cannot publish event in dotnet", eventType);
+
+                return;
             }
+
+            var evt = JsonSerializer.Deserialize(json, eType, JsonSerializerOptions);
+            if (evt is null)
+            {
+                return;
+            }
+
+            GetEvent(eType).Publish(evt);
         }
         catch (Exception ex)
         {
-            Log.LogError(ex, "Could not publish event (JS => DotNet): {EventType} {Json}", eType?.Name ?? "unknown",
+            Log.LogError(ex, "Could not publish event (JS => DotNet): {EventType} {Json}", 
+                         eType?.Name ?? "unknown",
                          json);
         }
-    }
-
-    private async Task ConnectJs()
-    {
-        if (_proxy == null)
-        {
-            var reference = DotNetObjectReference.Create(this);
-            _proxy = await _js.InvokeAsync<IJSObjectReference>("EventBus", reference);
-        }
-    }
-
-    static JsonSerializerOptions serializeOptions = new JsonSerializerOptions
-        { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-
-    private void Receive(object obj)
-    {
-        if (!_typeRegister.TryGetNameByType(obj.GetType(), out var name)) return;
-
-        var json = JsonSerializer.Serialize(obj, serializeOptions);
-        _proxy.InvokeVoidAsync("send", name, json);
     }
 
     /// <summary>
@@ -85,45 +76,74 @@ public class EventAggregator : IEventAggregator
     {
         lock (_events)
         {
-            EventBase existingEvent = null;
-
-            if (!_events.TryGetValue(typeof(TEventType), out existingEvent))
+            if (_events.TryGetValue(typeof(TEventType), out var existingEvent))
             {
-                var newEvent = new PubSubEvent<TEventType>();
-                newEvent.SynchronizationContext = _syncContext;
-                newEvent.OnChannelEvent = OnChannelSend;
-                _events[typeof(TEventType)] = newEvent;
-
-                return newEvent;
+                return (PubSubEvent<TEventType>)existingEvent;
             }
+            
+            var newEvent = new PubSubEvent<TEventType>
+            {
+                SynchronizationContext = _syncContext,
+                OnChannelEvent = OnChannelSend
+            };
+            _events[typeof(TEventType)] = newEvent;
 
-            return (PubSubEvent<TEventType>)existingEvent;
+            return newEvent;
+
         }
-    }
-
-    private void OnChannelSend(object obj)
-    {
-        Receive(obj);
     }
 
     public EventBase GetEvent(Type value)
     {
         lock (_events)
         {
-            EventBase existingEvent = null;
-
-            if (!_events.TryGetValue(value, out existingEvent))
+            if (_events.TryGetValue(value, out var existingEvent))
             {
-                var pubSubType = typeof(PubSubEvent<>).MakeGenericType(value);
-                var newEvent = (EventBase)Activator.CreateInstance(pubSubType);
-                newEvent.SynchronizationContext = _syncContext;
-                newEvent.OnChannelEvent = this.OnChannelSend;
-                _events[value] = newEvent;
-
-                return newEvent;
+                return existingEvent;
             }
+            
+            var pubSubType = typeof(PubSubEvent<>).MakeGenericType(value);
+            var newEvent = (EventBase?)Activator.CreateInstance(pubSubType);
 
-            return existingEvent;
+            if (newEvent is null)
+            {
+                Log.LogError("Cannot create instance of {Type}", pubSubType);
+                throw new NullReferenceException();
+            }
+            
+            newEvent.SynchronizationContext = _syncContext;
+            newEvent.OnChannelEvent = OnChannelSend;
+            _events[value] = newEvent;
+
+            return newEvent;
+
         }
+    }
+    
+    private async Task TryConnectJs()
+    {
+        if (_js == null)
+        {
+            return;
+        }
+        
+        if (_proxy == null)
+        {
+            var reference = DotNetObjectReference.Create(this);
+            _proxy = await _js.InvokeAsync<IJSObjectReference>("EventBus", reference);
+        }    
+    }
+    
+    private void OnChannelSend(object obj)
+    {
+        Receive(obj);
+    }
+    
+    private void Receive(object obj)
+    {
+        if (!_typeRegister.TryGetNameByType(obj.GetType(), out var name)) return;
+
+        var json = JsonSerializer.Serialize(obj, SerializeOptions);
+        _proxy?.InvokeVoidAsync("send", name, json);
     }
 }
