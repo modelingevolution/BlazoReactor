@@ -16,10 +16,7 @@
         /// Gets the list of current subscriptions.
         /// </summary>
         /// <value>The current subscribers.</value>
-        protected ICollection<IEventSubscription> Subscriptions
-        {
-            get { return _subscriptions; }
-        }
+        protected ICollection<IEventSubscription> Subscriptions => _subscriptions;
 
         /// <summary>
         /// Adds the specified <see cref="IEventSubscription"/> to the subscribers' collection.

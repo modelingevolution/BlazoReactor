@@ -91,21 +91,19 @@ namespace BlazoReactor.EventAggregator
                 {
                     var newEvent = new PubSubEvent<TEventType>();
                     newEvent.SynchronizationContext = _syncContext;
-                    newEvent.OnChannelEvent = this.OnChannelSend;
+                    newEvent.OnChannelEvent = OnChannelSend;
                     _events[typeof(TEventType)] = newEvent;
 
                     return newEvent;
                 }
-                else
-                {
-                    return (PubSubEvent<TEventType>)existingEvent;
-                }
+
+                return (PubSubEvent<TEventType>)existingEvent;
             }
         }
 
         private void OnChannelSend(object obj)
         {
-            this.Receive(obj);
+            Receive(obj);
         }
 
         public EventBase GetEvent(Type value)
@@ -124,10 +122,8 @@ namespace BlazoReactor.EventAggregator
 
                     return newEvent;
                 }
-                else
-                {
-                    return (EventBase)existingEvent;
-                }
+
+                return existingEvent;
             }
         }
     }

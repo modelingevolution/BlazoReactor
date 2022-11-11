@@ -14,13 +14,8 @@ namespace BlazoReactor.EventAggregator
     {
         private readonly IDelegateReference _actionReference;
         private readonly IDelegateReference _filterReference;
-        public Delegate Delegate
-        {
-            get
-            {
-                return _actionReference.Target;
-            }
-        }
+        public Delegate Delegate => _actionReference.Target;
+
         ///<summary>
         /// Creates a new instance of <see cref="EventSubscription{TPayload}"/>.
         ///</summary>
@@ -58,10 +53,7 @@ namespace BlazoReactor.EventAggregator
         /// Gets the target <see cref="Predicate{T}"/> that is referenced by the <see cref="IDelegateReference"/>.
         /// </summary>
         /// <value>An <see cref="Predicate{T}"/> or <see langword="null" /> if the referenced target is not alive.</value>
-        public Predicate<TPayload> Filter
-        {
-            get { return (Predicate<TPayload>)_filterReference.Target; }
-        }
+        public Predicate<TPayload> Filter => (Predicate<TPayload>)_filterReference.Target;
 
         /// <summary>
         /// Gets or sets a <see cref="SubscriptionToken"/> that identifies this <see cref="IEventSubscription"/>.
@@ -151,10 +143,7 @@ namespace BlazoReactor.EventAggregator
         /// Gets the target <see cref="System.Action"/> that is referenced by the <see cref="IDelegateReference"/>.
         /// </summary>
         /// <value>An <see cref="System.Action"/> or <see langword="null" /> if the referenced target is not alive.</value>
-        public Action Action
-        {
-            get { return (Action)_actionReference.Target; }
-        }
+        public Action Action => (Action)_actionReference.Target;
 
         /// <summary>
         /// Gets or sets a <see cref="SubscriptionToken"/> that identifies this <see cref="IEventSubscription"/>.

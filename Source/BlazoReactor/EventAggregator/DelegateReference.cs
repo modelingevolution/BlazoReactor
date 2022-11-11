@@ -28,7 +28,7 @@ namespace BlazoReactor.EventAggregator
 
             if (keepReferenceAlive)
             {
-                this._delegate = @delegate;
+                _delegate = @delegate;
             }
             else
             {
@@ -50,10 +50,8 @@ namespace BlazoReactor.EventAggregator
                 {
                     return _delegate;
                 }
-                else
-                {
-                    return TryGetDelegate();
-                }
+
+                return TryGetDelegate();
             }
         }
 
@@ -120,7 +118,7 @@ namespace BlazoReactor.EventAggregator
 
             if (keepReferenceAlive)
             {
-                this._delegate = @delegate;
+                _delegate = @delegate;
             }
             else
             {
@@ -142,10 +140,8 @@ namespace BlazoReactor.EventAggregator
                 {
                     return _delegate;
                 }
-                else
-                {
-                    return TryGetDelegate();
-                }
+
+                return TryGetDelegate();
             }
         }
 

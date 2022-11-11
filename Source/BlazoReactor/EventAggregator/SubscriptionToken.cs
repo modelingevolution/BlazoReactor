@@ -68,10 +68,10 @@
             // as no resources should be kept alive by the event subscription. 
             // In such cases, if a warning is issued, it could be suppressed.
 
-            if (this._unsubscribeAction != null)
+            if (_unsubscribeAction != null)
             {
-                this._unsubscribeAction(this);
-                this._unsubscribeAction = null;
+                _unsubscribeAction(this);
+                _unsubscribeAction = null;
             }
 
             GC.SuppressFinalize(this);
