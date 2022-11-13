@@ -6,24 +6,24 @@
 {
     @foreach (var item in ItemSource)
     {
-        <Observable Source="item"> @ChildContent(item) </Observable>
+        <Observable Source="item"> @ChildContent?.Invoke(item) </Observable>
     }
 }
 else
 {
     @foreach (var item in ItemSource)
     {
-        @ChildContent(item)
+        @ChildContent?.Invoke(item)
     }
 }
 
 @code 
 {
 
-    private IList<TItem> _itemSource;
+    private IList<TItem> _itemSource = ArraySegment<TItem>.Empty;
 
     [Parameter]
-    public RenderFragment<TItem> ChildContent { get; set; }
+    public RenderFragment<TItem>? ChildContent { get; set; }
 
     [Parameter]
     public bool IsNotifyPropertyChangedEnabled { get; set; }

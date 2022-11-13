@@ -7,6 +7,31 @@ namespace BlazoReactor.Navigation;
 public class NavigationService
 {
     private readonly NavigationManager _navigationManager;
+    private int _back;
+    private readonly ObservableCollection<string> _history;
+
+    public event EventHandler<LocationChangedEventArgs> LocationChanged
+    {
+        add => _navigationManager.LocationChanged += value;
+        remove => _navigationManager.LocationChanged -= value;
+    }
+    
+    public string BaseUri => _navigationManager.BaseUri;
+
+    public string Uri => _navigationManager.Uri;
+
+    public NavigationService(NavigationManager navigationManager)
+    {
+        _navigationManager = navigationManager;
+            
+        _history = new ObservableCollection<string>
+        {
+            _navigationManager.Uri.Substring(_navigationManager.BaseUri.Length)
+        };
+        _back = 0;
+        _navigationManager.LocationChanged += OnLocationChanged;
+    }
+
     public void NavigateTo(string uri, bool forceLoad = false)
     {
         _back = 0;
@@ -22,29 +47,7 @@ public class NavigationService
     {
         return _navigationManager.ToBaseRelativePath(uri);
     }
-
-    public string BaseUri => _navigationManager.BaseUri;
-
-    public string Uri => _navigationManager.Uri;
-
-    public event EventHandler<LocationChangedEventArgs> LocationChanged
-    {
-        add => _navigationManager.LocationChanged += value;
-        remove => _navigationManager.LocationChanged -= value;
-    }
-
-    public NavigationService(NavigationManager navigationManager)
-    {
-        _navigationManager = navigationManager;
-            
-        _history = new ObservableCollection<string>
-        {
-            _navigationManager.Uri.Substring(_navigationManager.BaseUri.Length)
-        };
-        _back = 0;
-        _navigationManager.LocationChanged += onLocationChanged;
-    }
-
+    
     public void GoBack()
     {
         var last = _history.Reverse().Skip(1+_back*2).FirstOrDefault();
@@ -53,10 +56,7 @@ public class NavigationService
         _navigationManager.NavigateTo(last);
     }
 
-    private int _back;
-    private ObservableCollection<string> _history;
-        
-    private void onLocationChanged(object sender, LocationChangedEventArgs e)
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
         _history.Add(e.Location.Substring(BaseUri.Length));
     }
