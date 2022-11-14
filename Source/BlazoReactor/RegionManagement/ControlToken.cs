@@ -1,11 +1,12 @@
 ﻿namespace BlazoReactor.RegionManagement
 {
-    public struct ControlToken : IEquatable<ControlToken>
+    public readonly struct ControlToken : IEquatable<ControlToken>
     {
-        internal long Id;
+        internal readonly long Id;
+        
         internal ControlToken(long id)
         {
-            this.Id = id;
+            Id = id;
         }
 
         public bool Equals(ControlToken other)
@@ -13,7 +14,7 @@
             return Id == other.Id;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is ControlToken other && Equals(other);
         }

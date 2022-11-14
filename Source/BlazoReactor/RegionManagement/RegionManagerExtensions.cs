@@ -16,6 +16,7 @@
                 builder.CloseComponent();
             });
         }
+        
         public static void SetContent(this IContentControl control, Type controlType, long id, object dataContext)
         {
             control.Control = new RenderControl(id, builder =>
@@ -25,6 +26,7 @@
                 builder.CloseComponent();
             });
         }
+        
         public static void AddContent(this IItemsControl control, Type controlType, long id, int seq, ControlParameter[] args)
         {
             control.Children.Add(new RenderControl(id, builder =>
@@ -40,12 +42,11 @@
         }
         public static void AddContent(this IItemsControl control, Type controlType, long id, object dataContext)
         {
-            
             int index = control.Children.Count;
             control.Children.Add( new RenderControl(id, builder =>
             {
-                builder.OpenComponent(2*index, controlType);
-                builder.AddAttribute(2*index+1, "DataContext", dataContext);
+                builder.OpenComponent(2 * index, controlType);
+                builder.AddAttribute(2 * index + 1, "DataContext", dataContext);
                 builder.CloseComponent();
             }));
         }

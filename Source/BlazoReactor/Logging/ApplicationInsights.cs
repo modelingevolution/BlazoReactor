@@ -44,7 +44,8 @@ public class ApplicationInsights : IApplicationInsights
         await Js.InvokeVoidAsync("appInsights.trackEvent", new { name }, properties);
     }
 
-    public async Task TrackTrace(string message, SeverityLevel? severityLevel = null, Dictionary<string, object>? properties = null)
+    public async Task TrackTrace(string message, SeverityLevel? severityLevel = null,
+                                 Dictionary<string, object?>? properties = null)
     {
         if (Js is null)
         {
@@ -55,7 +56,8 @@ public class ApplicationInsights : IApplicationInsights
         await Js.InvokeVoidAsync("appInsights.trackTrace", new { message, severityLevel }, properties);
     }
 
-    public async Task TrackException(Error exception, string? id = null, SeverityLevel? severityLevel = null, Dictionary<string, object>? properties = null)
+    public async Task TrackException(Error exception, string? id = null, SeverityLevel? severityLevel = null,
+                                     Dictionary<string, object?>? properties = null)
     {
         if (Js is null)
         {

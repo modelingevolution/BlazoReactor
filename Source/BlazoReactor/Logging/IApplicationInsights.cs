@@ -10,10 +10,10 @@ public interface IApplicationInsights
                        bool? isLoggedIn = null, Dictionary<string, object>? properties = null);
 
     Task TrackEvent(string name, Dictionary<string, object>? properties = null);
-    Task TrackTrace(string message, SeverityLevel? severityLevel = null, Dictionary<string, object>? properties = null);
+    Task TrackTrace(string message, SeverityLevel? severityLevel = null, Dictionary<string, object?>? properties = null);
 
     Task TrackException(Error exception, string? id = null, SeverityLevel? severityLevel = null,
-                        Dictionary<string, object>? properties = null);
+                        Dictionary<string, object?>? properties = null);
 
     Task StartTrackPage(string? name = null);
 

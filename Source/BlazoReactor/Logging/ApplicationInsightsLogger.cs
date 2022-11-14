@@ -28,8 +28,8 @@ public class ApplicationInsightsLogger : ILogger
         LogLevel logLevel,
         EventId eventId,
         TState state,
-        Exception exception,
-        Func<TState, Exception, string> formatter
+        Exception? exception,
+        Func<TState, Exception?, string> formatter
     )
     {
         SeverityLevel severityLevel = SeverityLevel.Verbose;
@@ -71,15 +71,18 @@ public class ApplicationInsightsLogger : ILogger
         }
     }
 
-    private Dictionary<string, object>? GetProperties<TState>(TState state)
+    private Dictionary<string, object?>? GetProperties<TState>(TState state)
     {
-        var properties = state as IReadOnlyList<KeyValuePair<string, object>>;
-        if (properties == null)
+        if (state is not IReadOnlyList<KeyValuePair<string, object>> properties)
+        {
             return null;
+        }
 
-        Dictionary<string, object> dict = new Dictionary<string, object>();
-        foreach (KeyValuePair<string, object> item in properties)
-            dict[item.Key] = Convert.ToString(item.Value, CultureInfo.InvariantCulture);
+        Dictionary<string, object?> dict = new Dictionary<string, object?>();
+        foreach (KeyValuePair<string, object> property in properties)
+        {
+            dict[property.Key] = Convert.ToString(property.Value, CultureInfo.InvariantCulture);
+        }
 
         return dict;
     }

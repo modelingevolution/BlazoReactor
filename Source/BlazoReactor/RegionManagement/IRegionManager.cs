@@ -4,9 +4,9 @@ namespace BlazoReactor.RegionManagement
 {
     public interface IRegionManager
     {
+        IRegion this[string regionName] { get; }
         IRegionManager RegisterViewWithRegion<TControl>(string regionName) where TControl : IComponent;
         IRegionManager SetRegionName(IContentControl contentControl, string regionName);
-        IRegion this[string regionName] { get; }
         IRegionManager RemoveRegion(string regionName);
     }
 }

@@ -7,10 +7,10 @@
     private INotifyPropertyChanged? _dataContext;
 
     [Parameter]
-    public RenderFragment ChildContent { get; set; }
+    public RenderFragment? ChildContent { get; set; }
 
     [Parameter]
-    public INotifyPropertyChanged DataContext { get; set; }
+    public INotifyPropertyChanged? DataContext { get; set; }
 
     [Parameter]
     public EventCallback PropertyChanged { get; set; }

@@ -2,6 +2,6 @@
 {
     public class InRegionAttribute : Attribute
     {
-        public string RegionName { get; set; }
+        public string? RegionName { get; set; }
     }
 }

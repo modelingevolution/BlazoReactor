@@ -20,13 +20,15 @@ public class RegionNavigation : IRegionNavigation
         var regionName = url.Host;
         var controlName = url.LocalPath;
 
-        if(_indexByName.TryGetValue(controlName, out var controlType) )
+        if (_indexByName.TryGetValue(controlName, out var controlType))
         {
             _regionManager[regionName].Add(controlType, args);
         }
         else ThrowNoRegistrationFound(url.ToString());
     }
-    private static void ThrowNoRegistrationFound(string url) => throw new InvalidOperationException($"No registration found for url: {url}.");
+
+    private static void ThrowNoRegistrationFound(string url) =>
+        throw new InvalidOperationException($"No registration found for url: {url}.");
 
     public void RegisterName<TControl>(string name)
     {

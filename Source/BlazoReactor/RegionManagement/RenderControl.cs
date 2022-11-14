@@ -9,8 +9,8 @@ public readonly struct RenderControl : IEquatable<RenderControl>
 
     public RenderControl(long id, RenderFragment action)
     {
-        this.Id = id;
-        this.RenderFragment = action;
+        Id = id;
+        RenderFragment = action;
     }
 
     public bool Equals(RenderControl other)
@@ -18,7 +18,7 @@ public readonly struct RenderControl : IEquatable<RenderControl>
         return Id == other.Id;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is RenderControl other && Equals(other);
     }
