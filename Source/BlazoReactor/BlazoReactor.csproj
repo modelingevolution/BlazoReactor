@@ -10,7 +10,7 @@
         <Product>BlazoReactor</Product>
         <Copyright>ModelingEvolution</Copyright>
         <PackageProjectUrl>https://github.com/modelingevolution/BlazoReactor.git</PackageProjectUrl>
-        <PackageIcon></PackageIcon>
+        <PackageIcon>logo.png</PackageIcon>
         <RepositoryType>GIT</RepositoryType>
         <PackageTags>Blazor</PackageTags>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
