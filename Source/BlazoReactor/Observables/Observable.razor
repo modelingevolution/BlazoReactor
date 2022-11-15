@@ -1,0 +1,45 @@
+﻿@using System.ComponentModel
+
+@typeparam TSource
+
+@implements IDisposable
+
+@ChildContent?.Invoke(Source)
+
+@code 
+{
+    private TSource? _source;
+
+    [Parameter]
+    public RenderFragment<TSource?>? ChildContent { get; set; }
+
+    [Parameter]
+    public TSource? Source
+    {
+        get => _source;
+        set
+        {
+            if (Equals(_source, value)) return;
+
+
+            if (_source != null)
+                ((INotifyPropertyChanged)_source).PropertyChanged -= OnPropertyChanged;
+            _source = value;
+            
+            if (_source != null)
+                ((INotifyPropertyChanged)_source).PropertyChanged += OnPropertyChanged;
+        }
+    }
+
+    public void Dispose()
+    {
+        if (_source != null)
+            ((INotifyPropertyChanged)_source).PropertyChanged -= OnPropertyChanged;
+    }
+
+    private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+    
+}
